@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:cardview="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Primer Layout: EditText, Spinner y Botón -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="8dp">
+
+        <!-- EditText para ingresar el número flotante -->
+        <EditText
+            android:id="@+id/et_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter number"
+            android:inputType="numberDecimal"
+            android:padding="8dp"/>
+
+        <!-- Spinner para seleccionar la precisión -->
+        <Spinner
+            android:id="@+id/sp_precision"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/precision_array"
+            android:padding="8dp"
+            android:textSize="12sp" />
+
+        <!-- Botón para calcular -->
+        <Button
+            android:id="@+id/btn_calculate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Calculate"
+            android:padding="8dp"
+            android:textSize="12sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <!-- CardView para contener los resultados -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:padding="16dp"
+        cardview:cardCornerRadius="8dp"
+        cardview:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Resultado: Número Original -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Original number: "
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tv_original"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- Resultado: Número en Punto Fijo -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fixed Point number: "
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tv_fixed_point"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- Resultado: Número Normalizado -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fixed Point number (Normalized): "
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tv_fixed_point_normalized"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- Resultado: Cálculo del Exponente -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Exponent calculation: "
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tv_exponent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- Resultado: Cálculo de la Mantisa -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Calculation of the mantissa: "
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tv_mantissa"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</LinearLayout>

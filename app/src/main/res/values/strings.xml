@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">mallozziu1teamproyect</string>
+
+    <string-array name="precision_array">
+        <item>Simple Precision (32 bits)</item>
+        <item>Double Precision (64 bits)</item>
+        <item>Quadruple Precision (128 bits)</item>
+    </string-array>
+</resources>
