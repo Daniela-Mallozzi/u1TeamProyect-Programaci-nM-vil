@@ -77,98 +77,123 @@ public class MainActivity extends AppCompatActivity {
     private void calculateSinglePrecision(float originalNumber) {
         tvOriginal.setText(" " + originalNumber);
 
-        // Convertir a punto fijo
         String fixedPoint = toFixedPointString(originalNumber, 23);
-        tvFixedPoint.setText("  " + fixedPoint);
+        tvFixedPoint.setText(" " + fixedPoint);
 
-        // Normalización del número en punto fijo
         String[] normalized = normalizeBinary(fixedPoint);
-        tvFixedPointNormalized.setText(" : " + normalized[0] + " x 2^" + normalized[1]);
+        String normalizedNumber = normalized[0].charAt(0) + "." + normalized[0].substring(1);
+        tvFixedPointNormalized.setText(" " + normalizedNumber + " x 2^" + normalized[1]);
 
-        // Cálculo del exponente
         int exponent = calculateExponent(originalNumber);
         int skewedExponent = exponent + 127; // Sesgo para precisión simple
-        tvExponent.setText(" Exponent = " + exponent + "; Skewed exponent = " + skewedExponent + " (In binary: " + String.format("%8s", Integer.toBinaryString(skewedExponent)).replace(' ', '0') + ")");
+        tvExponent.setText(" Exponent = " + exponent + "; Skewed exponent = "  + exponent + " + 127 =" + skewedExponent + " (In binary: " + String.format("%8s", Integer.toBinaryString(skewedExponent)).replace(' ', '0') + ") ");
 
-        // Cálculo de la mantisa
-        String mantissa = calculateMantissa(normalized[0]);
+        String mantissa = calculateMantissa(normalized[0], 23);
         tvMantissa.setText(" " + mantissa);
     }
 
     private void calculateDoublePrecision(double originalNumber) {
         tvOriginal.setText(" " + originalNumber);
 
-        // Convertir a punto fijo
         String fixedPoint = toFixedPointString(originalNumber, 52);
         tvFixedPoint.setText(" " + fixedPoint);
 
-        // Normalización del número en punto fijo
         String[] normalized = normalizeBinary(fixedPoint);
         tvFixedPointNormalized.setText(" " + normalized[0] + " x 2^" + normalized[1]);
 
-        // Cálculo del exponente
         int exponent = calculateExponent(originalNumber);
         int skewedExponent = exponent + 1023; // Sesgo para precisión doble
-        tvExponent.setText(" Exponent = " + exponent + "; Skewed exponent = " + skewedExponent + " (In binary: " + String.format("%11s", Integer.toBinaryString(skewedExponent)).replace(' ', '0') + ")");
+        tvExponent.setText(" = " + exponent + "; Skewed exponent = " + skewedExponent + " (In binary: " + String.format("%11s", Integer.toBinaryString(skewedExponent)).replace(' ', '0') + ")");
 
-        // Cálculo de la mantisa
-        String mantissa = calculateMantissa(originalNumber); // Aquí se utiliza el método de mantisa para precisión doble
+        String mantissa = calculateMantissa(normalized[0], 52); // Asegúrate de que mantissaBits es correcto aquí
         tvMantissa.setText(" " + mantissa);
     }
 
     private void calculateQuadruplePrecision(BigDecimal originalNumber) {
         tvOriginal.setText(" " + originalNumber);
 
-        // Convertir a punto fijo
         String fixedPoint = toFixedPointString(originalNumber, 112); // Cuádruple precisión utiliza 112 bits para la parte fraccionaria
         tvFixedPoint.setText(" " + fixedPoint);
 
-        // Normalización del número en punto fijo
         String[] normalized = normalizeBinary(fixedPoint);
         tvFixedPointNormalized.setText(" " + normalized[0] + " x 2^" + normalized[1]);
 
-        // Cálculo del exponente
         int exponent = calculateExponent(originalNumber.doubleValue());
         int skewedExponent = exponent + 16383; // Sesgo para precisión cuádruple
         tvExponent.setText(" Exponent = " + exponent + "; Skewed exponent = " + skewedExponent + " (In binary: " + String.format("%15s", Integer.toBinaryString(skewedExponent)).replace(' ', '0') + ")");
 
-        // Cálculo de la mantisa
-        String mantissa = calculateMantissa(originalNumber); // Aquí se utiliza el método de mantisa para precisión cuádruple
+        String mantissa = calculateMantissa(normalized[0], 52);
         tvMantissa.setText(" " + mantissa);
     }
 
     private String toFixedPointString(float number, int fractionBits) {
-        // Convertir a punto fijo multiplicando por 2^fractionBits
         int fixedPoint = Math.round(number * (1 << fractionBits));
+
         String binary = Integer.toBinaryString(fixedPoint);
 
-        // Asegurarse de que tenga al menos (fractionBits + 1) bits
-        while (binary.length() < (fractionBits + 1)) {
-            binary = "0" + binary;
+        int totalBits = fractionBits + 8; // 8 bits para la parte entera
+
+        while (binary.length() < totalBits) {
+            binary = "0" + binary; // Agrega ceros a la izquierda
         }
 
-        // Separar la parte entera y la parte fraccionaria
         String integerPart = binary.substring(0, binary.length() - fractionBits);
         String fractionalPart = binary.substring(binary.length() - fractionBits);
 
-        // Formatear número en punto fijo
+        while (integerPart.length() < 8) {
+            integerPart = "0" + integerPart; // Agrega ceros a la izquierda
+        }
+
+        if (integerPart.length() > 8) {
+            integerPart = integerPart.substring(integerPart.length() - 8); // Cortar a 8 bits
+        }
+
         return String.format("%s.%s", integerPart, fractionalPart);
     }
 
-    private String toFixedPointString(double number, int fractionBits) {
-        long fixedPoint = Math.round(number * (1L << fractionBits));
-        String binary = Long.toBinaryString(fixedPoint);
+    private String normalizeFixedPoint(float number, int fractionBits) {
+        String fixedPoint = toFixedPointString(number, fractionBits);
 
-        // Asegurarse de que tenga al menos (fractionBits + 1) bits
-        while (binary.length() < (fractionBits + 1)) {
-            binary = "0" + binary;
+        // Normaliza el número fijo
+        String[] parts = fixedPoint.split("\\.");
+        String integerPart = parts[0];
+        String fractionalPart = parts[1];
+
+        // Ajusta el número normalizado
+        String normalized = integerPart + fractionalPart; // Combina parte entera y fraccionaria
+        int exponent = integerPart.length() - 1; // Encuentra el exponente
+        String skewedExponent = Integer.toBinaryString(exponent + 127); // Exponente sesgado
+
+        // Normalización
+        String mantissa = normalized.substring(1); // Mantissa sin el primer bit
+
+        // Asegúrate de que la mantisa tenga 23 bits
+        while (mantissa.length() < 23) {
+            mantissa += "0"; // Rellena con ceros a la derecha si es necesario
         }
 
-        // Separar la parte entera y la parte fraccionaria
+        return String.format("%s x2^%d", normalized.charAt(0) + "." + mantissa, exponent);
+    }
+    private String toFixedPointString(double number, int fractionBits) {
+        long fixedPoint = Math.round(number * (1L << fractionBits)); // Multiplica por 2^fractionBits
+        String binary = Long.toBinaryString(fixedPoint);
+
+        // Calcular la longitud total que debería tener el resultado
+        int totalBits = fractionBits + 1; // +1 para incluir el bit entero
+
+        // Asegúrate de que el número binario tenga el tamaño correcto
+        while (binary.length() < totalBits) {
+            binary = "0" + binary; // Agrega ceros a la izquierda
+        }
+
         String integerPart = binary.substring(0, binary.length() - fractionBits);
         String fractionalPart = binary.substring(binary.length() - fractionBits);
 
-        // Formatear número en punto fijo
+        // Asegurarse de que la parte entera tenga 9 bits
+        while (integerPart.length() < 9) { // Asegura que tenga 9 bits (8 bits + 1 bit para el signo)
+            integerPart = "0" + integerPart; // Agrega ceros a la izquierda
+        }
+
         return String.format("%s.%s", integerPart, fractionalPart);
     }
 
@@ -176,78 +201,70 @@ public class MainActivity extends AppCompatActivity {
         BigDecimal fixedPoint = number.multiply(BigDecimal.valueOf(1L << fractionBits));
         String binary = fixedPoint.toBigInteger().toString(2);
 
-        // Asegurarse de que tenga al menos (fractionBits + 1) bits
-        while (binary.length() < (fractionBits + 1)) {
-            binary = "0" + binary;
+        // Calcular la longitud total que debería tener el resultado
+        int totalBits = fractionBits + 1; // +1 para incluir el bit entero
+
+        // Asegúrate de que el número binario tenga el tamaño correcto
+        while (binary.length() < totalBits) {
+            binary = "0" + binary; // Agrega ceros a la izquierda
         }
 
-        // Separar la parte entera y la parte fraccionaria
         String integerPart = binary.substring(0, binary.length() - fractionBits);
         String fractionalPart = binary.substring(binary.length() - fractionBits);
 
-        // Formatear número en punto fijo
+        while (integerPart.length() < 9) { // Asegura que tenga 9 bits (8 bits + 1 bit para el signo)
+            integerPart = "0" + integerPart; // Agrega ceros a la izquierda
+        }
+
         return String.format("%s.%s", integerPart, fractionalPart);
     }
+
 
     private String[] normalizeBinary(String binary) {
         int index = binary.indexOf('.');
         String integerPart = binary.substring(0, index);
         String fractionalPart = binary.substring(index + 1);
 
-        // Eliminar ceros a la izquierda en la parte entera
-        while (integerPart.length() > 0 && integerPart.charAt(0) == '0') {
-            integerPart = integerPart.substring(1);
+        // Encontrar el primer '1' en la parte entera
+        int leadingOneIndex = integerPart.indexOf('1');
+        if (leadingOneIndex == -1) {
+            // Si no hay '1' en la parte entera, buscar en la parte fraccionaria
+            leadingOneIndex = integerPart.length() + fractionalPart.indexOf('1');
+            if (leadingOneIndex == -1) return new String[]{"0", "0"}; // Si no hay '1', es 0.
         }
 
-        // Normalizar si la parte entera es 0
-        if (integerPart.isEmpty()) {
-            integerPart = "0";
-        }
+        // Calcular el exponente real
+        int exponent = (leadingOneIndex < integerPart.length()) ?
+                integerPart.length() - leadingOneIndex - 1 :
+                leadingOneIndex - integerPart.length();
 
-        int exponent = integerPart.length() - 1;
-        String normalized = integerPart + fractionalPart;
-
-        // Eliminar el primer 1 en la mantisa
-        if (normalized.length() > 0 && normalized.charAt(0) == '1') {
-            normalized = normalized.substring(1);
-        }
-
+        String normalized = "1" + integerPart.substring(leadingOneIndex + 1) + fractionalPart;
         return new String[]{normalized, String.valueOf(exponent)};
     }
 
+    private int calculateExponent(float number) {
+        if (number == 0) return 0;
+
+        int exponent = (int) (Math.log(Math.abs(number)) / Math.log(2));
+        return exponent;
+    }
+
     private int calculateExponent(double number) {
-        return (int) Math.floor(Math.log(Math.abs(number)) / Math.log(2));
+        if (number == 0) return 0;
+
+        int exponent = (int) (Math.log(Math.abs(number)) / Math.log(2));
+        return exponent;
     }
 
-    private int calculateExponent(BigDecimal number) {
-        return (int) Math.floor(Math.log(Math.abs(number.doubleValue())) / Math.log(2));
-    }
-
-    private String calculateMantissa(String mantissa) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 23; i++) { // Ajuste para 23 bits de la mantisa de simple precisión
-            if (i < mantissa.length()) {
-                sb.append(mantissa.charAt(i));
+    private String calculateMantissa(String normalized, int mantissaBits) {
+        StringBuilder mantissa = new StringBuilder();
+        for (int i = 1; i <= mantissaBits; i++) {
+            if (i < normalized.length()) {
+                mantissa.append(normalized.charAt(i));
             } else {
-                sb.append("0");
+                mantissa.append("0");
             }
         }
-        return sb.toString();
-    }
-
-    private String calculateMantissa(double mantissa) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 52; i++) { // Ajuste para 52 bits de la mantisa de doble precisión
-            sb.append("0");
-        }
-        return sb.toString();
-    }
-
-    private String calculateMantissa(BigDecimal mantissa) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 112; i++) { // Ajuste para 112 bits de la mantisa de cuádruple precisión
-            sb.append("0");
-        }
-        return sb.toString();
+        return mantissa.toString();
     }
 }
